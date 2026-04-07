@@ -106,7 +106,7 @@ export default function RoomPage() {
             </svg>
           </div>
           {/* Hide app name on mobile to save space */}
-          <span className="font-bold text-gray-900 text-lg hidden sm:block">WordTogether</span>
+          <span className="font-bold text-gray-900 text-lg hidden sm:block">Selah</span>
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-xs text-gray-600 min-w-0">
             <span className="truncate max-w-[100px] sm:max-w-none">{roomName}</span>
             <span className="text-gray-400">·</span>

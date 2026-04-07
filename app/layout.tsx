@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "WordTogether — Read the Bible Together",
+  title: "Selah — Read the Bible Together",
   description: "Real-time Bible reading and discussion with friends. Compare NIV, KJV, ESV, The Message, and TB side by side.",
 };
 
