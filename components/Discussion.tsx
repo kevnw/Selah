@@ -12,6 +12,7 @@ interface Props {
   onFilterVerse: (verse: number | null) => void;
   onSend: (content: string, verseRef?: string) => void;
   loading?: boolean;
+  hideHeader?: boolean;
 }
 
 function timeAgo(dateStr: string): string {
@@ -30,6 +31,7 @@ export function Discussion({
   onFilterVerse,
   onSend,
   loading,
+  hideHeader,
 }: Props) {
   const [input, setInput] = useState("");
   const [attachVerse, setAttachVerse] = useState(true);
@@ -54,17 +56,19 @@ export function Discussion({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">Discussion</h2>
-        <button
-          onClick={() => onFilterVerse(null)}
-          className={`text-xs font-medium transition-colors ${
-            filterVerse ? "text-blue-600 hover:text-blue-700" : "text-gray-400"
-          }`}
-        >
-          {filterVerse ? `Verse ${filterVerse} ×` : "all verses"}
-        </button>
-      </div>
+      {!hideHeader && (
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Discussion</h2>
+          <button
+            onClick={() => onFilterVerse(null)}
+            className={`text-xs font-medium transition-colors ${
+              filterVerse ? "text-blue-600 hover:text-blue-700" : "text-gray-400"
+            }`}
+          >
+            {filterVerse ? `Verse ${filterVerse} ×` : "all verses"}
+          </button>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
