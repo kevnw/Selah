@@ -54,6 +54,7 @@ export function CompareVersions({ book, chapter }: Props) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100">
+        <p className="text-base font-semibold text-gray-900 mb-3">{book} {chapter}</p>
         <div className="flex flex-wrap gap-2">
           {VERSION_KEYS.map((v) => (
             <button
