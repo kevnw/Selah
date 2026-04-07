@@ -22,12 +22,11 @@ export function useRoom(roomId: string, session: UserSession | null): UseRoomRet
     if (!session) return;
 
     if (!isSupabaseConfigured()) {
-      // Demo mode: use local state only
       setLoading(false);
       return;
     }
 
-    // Load existing messages
+    // Load existing messages from DB
     supabase
       .from("messages")
       .select("*")
@@ -38,20 +37,20 @@ export function useRoom(roomId: string, session: UserSession | null): UseRoomRet
         setLoading(false);
       });
 
-    // Subscribe to new messages
     const channel = supabase
       .channel(`room:${roomId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `room_id=eq.${roomId}` },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
-        }
-      )
+      // Broadcast: ultra-low latency (~50ms), direct websocket delivery
+      .on("broadcast", { event: "message" }, ({ payload }) => {
+        const msg = payload as Message;
+        setMessages((prev) => {
+          // Skip if already added optimistically by this user
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      })
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState<Presence>();
-        const users = Object.values(state).flat();
-        setOnlineUsers(users);
+        setOnlineUsers(Object.values(state).flat());
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -86,13 +85,23 @@ export function useRoom(roomId: string, session: UserSession | null): UseRoomRet
     };
 
     if (!isSupabaseConfigured()) {
-      // Demo mode: local only
       setMessages((prev) => [...prev, msg]);
       return;
     }
 
+    // 1. Show instantly for the sender (optimistic)
+    setMessages((prev) => [...prev, msg]);
+
+    // 2. Broadcast to all other users in the room (fast path, ~50ms)
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "message",
+      payload: msg,
+    });
+
+    // 3. Persist to DB in background (slow path, for history)
     supabase.from("messages").insert(msg).then(({ error }) => {
-      if (error) console.error("Failed to send message:", error);
+      if (error) console.error("Failed to persist message:", error);
     });
   }
 
