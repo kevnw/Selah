@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BibleChapter, BIBLE_VERSIONS } from "@/lib/types";
+import { BibleChapter, BIBLE_VERSIONS, BIBLE_BOOKS, CHAPTER_COUNTS } from "@/lib/types";
 import { fetchChapter } from "@/lib/bible";
+import { BookChapterPicker } from "./BookChapterPicker";
 
 interface Props {
   book: string;
   chapter: number;
+  onNavigate: (book: string, chapter: number) => void;
 }
 
 const VERSION_KEYS = Object.keys(BIBLE_VERSIONS);
 
-export function CompareVersions({ book, chapter }: Props) {
+export function CompareVersions({ book, chapter, onNavigate }: Props) {
   const [selectedVersions, setSelectedVersions] = useState<string[]>(["NIV", "KJV", "ESV"]);
   const [chapterData, setChapterData] = useState<Record<string, BibleChapter>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
@@ -54,7 +56,45 @@ export function CompareVersions({ book, chapter }: Props) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100">
-        <p className="text-base font-semibold text-gray-900 mb-3">{book} {chapter}</p>
+        <div className="flex items-center justify-between mb-3">
+          <BookChapterPicker book={book} chapter={chapter} onChange={onNavigate} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (chapter > 1) {
+                  onNavigate(book, chapter - 1);
+                } else {
+                  const idx = BIBLE_BOOKS.indexOf(book);
+                  if (idx > 0) {
+                    const prev = BIBLE_BOOKS[idx - 1];
+                    onNavigate(prev, CHAPTER_COUNTS[prev] || 1);
+                  }
+                }
+              }}
+              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                const max = CHAPTER_COUNTS[book] || 1;
+                if (chapter < max) {
+                  onNavigate(book, chapter + 1);
+                } else {
+                  const idx = BIBLE_BOOKS.indexOf(book);
+                  if (idx < BIBLE_BOOKS.length - 1) onNavigate(BIBLE_BOOKS[idx + 1], 1);
+                }
+              }}
+              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2">
           {VERSION_KEYS.map((v) => (
             <button

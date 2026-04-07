@@ -122,7 +122,7 @@ export default function RoomPage() {
           </>
         ) : (
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            <CompareVersions book={book} chapter={chapter} />
+            <CompareVersions book={book} chapter={chapter} onNavigate={handleNavigate} />
           </div>
         )}
       </div>
