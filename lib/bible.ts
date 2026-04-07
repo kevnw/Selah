@@ -1,7 +1,7 @@
 import { BibleChapter } from "./types";
 
 const API_BIBLE_KEY = process.env.NEXT_PUBLIC_API_BIBLE_KEY || "";
-const API_BASE = "https://api.scripture.api.bible/v1";
+const API_BASE = "https://rest.api.bible/v1";
 
 // Book ID mapping for api.bible
 const BOOK_IDS: Record<string, string> = {
