@@ -22,8 +22,7 @@ export function CompareVersions({ book, chapter }: Props) {
     selectedVersions.forEach((v) => {
       if (!chapterData[`${v}-${book}-${chapter}`]) {
         setLoading((prev) => ({ ...prev, [v]: true }));
-        const versionId = BIBLE_VERSIONS[v].apiId;
-        fetchChapter(book, chapter, versionId)
+        fetchChapter(book, chapter, v)
           .then((data) => {
             setChapterData((prev) => ({ ...prev, [`${v}-${book}-${chapter}`]: data }));
             setLoading((prev) => ({ ...prev, [v]: false }));

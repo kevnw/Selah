@@ -31,8 +31,7 @@ export function BibleReader({
   useEffect(() => {
     setLoading(true);
     setError(null);
-    const versionId = BIBLE_VERSIONS[version]?.apiId || BIBLE_VERSIONS.KJV.apiId;
-    fetchChapter(book, chapter, versionId)
+    fetchChapter(book, chapter, version)
       .then((data) => {
         setBibleData(data);
         setLoading(false);
