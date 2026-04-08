@@ -43,10 +43,10 @@ export interface BibleChapter {
 
 export const BIBLE_VERSIONS: Record<string, { label: string; apiId: string; color: string }> = {
   NIV: { label: "NIV", apiId: "de4e12af7f28f599-02", color: "#3b82f6" },
+  TB:  { label: "TB",  apiId: "c315fa9f71d4af3a-01", color: "#ef4444" },
   KJV: { label: "KJV", apiId: "de4e12af7f28f599-01", color: "#8b5cf6" },
   ESV: { label: "ESV", apiId: "9879dbb7cfe39e4d-04", color: "#10b981" },
   MSG: { label: "MSG", apiId: "65eec8e0b60e656b-01", color: "#f59e0b" },
-  TB:  { label: "TB",  apiId: "c315fa9f71d4af3a-01", color: "#ef4444" },
 };
 
 // Books of the Bible for navigation

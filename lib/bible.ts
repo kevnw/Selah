@@ -66,10 +66,13 @@ export function prefetchChapters(book: string, chapter: number, version: string)
     }
   }
 
-  for (const [b, c] of candidates) {
-    const key = cacheKey(b, c, version);
-    if (!chapterCache.has(key)) {
-      fetchChapter(b, c, version).catch(() => {});
+  const versions = version === "TB" ? ["TB", "NIV"] : [version, "TB"];
+  for (const v of versions) {
+    for (const [b, c] of candidates) {
+      const key = cacheKey(b, c, v);
+      if (!chapterCache.has(key)) {
+        fetchChapter(b, c, v).catch(() => {});
+      }
     }
   }
 }
