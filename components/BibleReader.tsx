@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BibleChapter, BIBLE_VERSIONS, CHAPTER_COUNTS, BIBLE_BOOKS, VerseRange } from "@/lib/types";
-import { fetchChapter } from "@/lib/bible";
+import { fetchChapter, prefetchChapters } from "@/lib/bible";
 import { BookChapterPicker } from "./BookChapterPicker";
 
 interface Props {
@@ -30,7 +30,7 @@ export function BibleReader({
     setLoading(true);
     setError(null);
     fetchChapter(book, chapter, version)
-      .then((data) => { setBibleData(data); setLoading(false); })
+      .then((data) => { setBibleData(data); setLoading(false); prefetchChapters(book, chapter, version); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [book, chapter, version]);
 

@@ -1,7 +1,13 @@
-import { BibleChapter } from "./types";
+import { BibleChapter, BIBLE_BOOKS, CHAPTER_COUNTS } from "./types";
 
 const API_BIBLE_KEY = process.env.NEXT_PUBLIC_API_BIBLE_KEY || "";
 const API_BASE = "https://rest.api.bible/v1";
+
+const chapterCache = new Map<string, BibleChapter>();
+
+function cacheKey(book: string, chapter: number, version: string) {
+  return `${book}|${chapter}|${version}`;
+}
 
 // Book numbers for getbible.net (used for TB)
 // Book ID mapping for api.bible
@@ -30,6 +36,45 @@ function stripHtml(html: string): string {
 }
 
 export async function fetchChapter(
+  book: string,
+  chapter: number,
+  versionKey: string
+): Promise<BibleChapter> {
+  const key = cacheKey(book, chapter, versionKey);
+  if (chapterCache.has(key)) return chapterCache.get(key)!;
+
+  const result = await fetchChapterUncached(book, chapter, versionKey);
+  chapterCache.set(key, result);
+  return result;
+}
+
+export function prefetchChapters(book: string, chapter: number, version: string) {
+  const bookIdx = BIBLE_BOOKS.indexOf(book);
+  const maxChapter = CHAPTER_COUNTS[book] || 1;
+
+  const candidates: [string, number][] = [];
+  for (let delta = -2; delta <= 2; delta++) {
+    if (delta === 0) continue;
+    const c = chapter + delta;
+    if (c >= 1 && c <= maxChapter) {
+      candidates.push([book, c]);
+    } else if (c < 1 && bookIdx > 0) {
+      const prevBook = BIBLE_BOOKS[bookIdx - 1];
+      candidates.push([prevBook, CHAPTER_COUNTS[prevBook] || 1]);
+    } else if (c > maxChapter && bookIdx < BIBLE_BOOKS.length - 1) {
+      candidates.push([BIBLE_BOOKS[bookIdx + 1], 1]);
+    }
+  }
+
+  for (const [b, c] of candidates) {
+    const key = cacheKey(b, c, version);
+    if (!chapterCache.has(key)) {
+      fetchChapter(b, c, version).catch(() => {});
+    }
+  }
+}
+
+async function fetchChapterUncached(
   book: string,
   chapter: number,
   versionKey: string
