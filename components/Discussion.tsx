@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Message } from "@/lib/types";
+import { Message, VerseRange } from "@/lib/types";
 import { UserAvatar } from "./UserAvatar";
 
 interface Props {
   messages: Message[];
   currentUserId: string;
-  selectedVerse: number | null;
-  filterVerse: number | null;
-  onFilterVerse: (verse: number | null) => void;
+  book: string;
+  chapter: number;
+  selectedVerse: VerseRange | null;
+  filterVerse: string | null;
+  onFilterVerse: (verseRef: string | null) => void;
   onSend: (content: string, verseRef?: string) => void;
   loading?: boolean;
   hideHeader?: boolean;
@@ -24,7 +26,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function Discussion({
-  messages, currentUserId, selectedVerse, filterVerse,
+  messages, currentUserId, book, chapter, selectedVerse, filterVerse,
   onFilterVerse, onSend, loading, hideHeader,
 }: Props) {
   const [input, setInput] = useState("");
@@ -35,14 +37,27 @@ export function Discussion({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
+  useEffect(() => {
+    setAttachVerse(true);
+  }, [selectedVerse]);
+
   const filtered = filterVerse
-    ? messages.filter((m) => m.verse_ref === String(filterVerse))
+    ? messages.filter((m) => m.verse_ref === filterVerse)
     : messages;
+
+  function buildVerseRef(range: VerseRange): string {
+    const verseStr = range.start === range.end ? `${range.start}` : `${range.start}-${range.end}`;
+    return `${book} ${chapter}:${verseStr}`;
+  }
+
+  function verseLabel(ref: string): string {
+    return ref.split(":")[1] ?? ref;
+  }
 
   function handleSend() {
     const trimmed = input.trim();
     if (!trimmed) return;
-    onSend(trimmed, selectedVerse && attachVerse ? String(selectedVerse) : undefined);
+    onSend(trimmed, selectedVerse && attachVerse ? buildVerseRef(selectedVerse) : undefined);
     setInput("");
   }
 
@@ -57,7 +72,7 @@ export function Discussion({
               filterVerse ? "text-blue-600 dark:text-blue-400 hover:text-blue-700" : "text-gray-400 dark:text-gray-500"
             }`}
           >
-            {filterVerse ? `Verse ${filterVerse} ×` : "all verses"}
+            {filterVerse ? `v.${verseLabel(filterVerse)} ×` : "all verses"}
           </button>
         </div>
       )}
@@ -73,7 +88,7 @@ export function Discussion({
             <div className="text-center">
               <div className="text-gray-300 dark:text-gray-600 text-4xl mb-3">💬</div>
               <p className="text-sm text-gray-400 dark:text-gray-500">
-                {filterVerse ? `No comments on verse ${filterVerse} yet` : "Be the first to share a reflection"}
+                {filterVerse ? `No comments on v.${verseLabel(filterVerse)} yet` : "Be the first to share a reflection"}
               </p>
             </div>
           </div>
@@ -88,10 +103,11 @@ export function Discussion({
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">{msg.user_name}</span>
                   {msg.verse_ref && (
                     <button
-                      onClick={() => onFilterVerse(Number(msg.verse_ref))}
+                      onClick={() => onFilterVerse(msg.verse_ref!)}
                       className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
+                      title={msg.verse_ref}
                     >
-                      v.{msg.verse_ref}
+                      v.{msg.verse_ref.split(":")[1]}
                     </button>
                   )}
                   <span className="text-xs text-gray-400 dark:text-gray-600">{timeAgo(msg.created_at)}</span>
@@ -122,7 +138,9 @@ export function Discussion({
               }`}
             >
               <span>{attachVerse ? "✓" : "○"}</span>
-              Commenting on verse {selectedVerse}
+              {selectedVerse.start === selectedVerse.end
+                ? `Commenting on verse ${selectedVerse.start}`
+                : `Commenting on verses ${selectedVerse.start}–${selectedVerse.end}`}
             </button>
           </div>
         )}

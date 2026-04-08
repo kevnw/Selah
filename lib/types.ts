@@ -1,3 +1,8 @@
+export interface VerseRange {
+  start: number;
+  end: number;
+}
+
 export interface Message {
   id: string;
   room_id: string;
@@ -5,7 +10,7 @@ export interface Message {
   user_name: string;
   user_color: string;
   content: string;
-  verse_ref?: string; // e.g. "3" for verse 3, or null for general
+  verse_ref?: string; // e.g. "Psalms 23:3", or null for general
   created_at: string;
 }
 

@@ -10,6 +10,7 @@ import { UserAvatarGroup } from "@/components/UserAvatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useRoom } from "@/hooks/useRoom";
 import { getOrCreateSession, updateSessionName, UserSession } from "@/lib/session";
+import { VerseRange } from "@/lib/types";
 
 type Tab = "read" | "compare";
 
@@ -25,8 +26,8 @@ export default function RoomPage() {
   const [book, setBook] = useState("Psalms");
   const [chapter, setChapter] = useState(23);
   const [version, setVersion] = useState("NIV");
-  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
-  const [filterVerse, setFilterVerse] = useState<number | null>(null);
+  const [selectedVerse, setSelectedVerse] = useState<VerseRange | null>(null);
+  const [filterVerse, setFilterVerse] = useState<string | null>(null);
   const [roomName, setRoomName] = useState("");
 
   useEffect(() => {
@@ -49,19 +50,32 @@ export default function RoomPage() {
 
   const verseCommentCounts = useMemo(() => {
     const counts: Record<number, number> = {};
+    const prefix = `${book} ${chapter}:`;
     messages.forEach((m) => {
-      if (m.verse_ref) { const v = Number(m.verse_ref); counts[v] = (counts[v] || 0) + 1; }
+      if (!m.verse_ref?.startsWith(prefix)) return;
+      const verseStr = m.verse_ref.split(":")[1];
+      if (verseStr.includes("-")) {
+        const [s, e] = verseStr.split("-").map(Number);
+        for (let v = s; v <= e; v++) counts[v] = (counts[v] || 0) + 1;
+      } else {
+        const v = Number(verseStr);
+        counts[v] = (counts[v] || 0) + 1;
+      }
     });
     return counts;
-  }, [messages]);
+  }, [messages, book, chapter]);
 
   function handleNavigate(newBook: string, newChapter: number) {
     setBook(newBook); setChapter(newChapter); setSelectedVerse(null); setFilterVerse(null);
   }
 
-  function handleVerseSelect(verse: number | null) {
-    setSelectedVerse(verse);
-    if (verse !== null) { setFilterVerse(verse); setSheetOpen(true); }
+  function handleVerseSelect(range: VerseRange | null) {
+    setSelectedVerse(range);
+    if (range !== null) {
+      const verseStr = range.start === range.end ? `${range.start}` : `${range.start}-${range.end}`;
+      setFilterVerse(`${book} ${chapter}:${verseStr}`);
+      setSheetOpen(true);
+    }
   }
 
   function confirmName() {
@@ -145,13 +159,14 @@ export default function RoomPage() {
                 <BibleReader
                   book={book} chapter={chapter} version={version}
                   selectedVerse={selectedVerse} verseCommentCounts={verseCommentCounts}
-                  onVerseSelect={setSelectedVerse} onNavigate={handleNavigate}
+                  onVerseSelect={(range) => { setSelectedVerse(range); if (range) { const vs = range.start === range.end ? `${range.start}` : `${range.start}-${range.end}`; setFilterVerse(`${book} ${chapter}:${vs}`); } else { setFilterVerse(null); } }} onNavigate={handleNavigate}
                   onVersionChange={setVersion} onOpenDiscussion={() => {}} totalComments={messages.length}
                 />
               </div>
               <div className="w-[380px] flex-shrink-0 min-h-0 overflow-hidden flex flex-col">
                 <Discussion
                   messages={messages} currentUserId={session?.userId || ""}
+                  book={book} chapter={chapter}
                   selectedVerse={selectedVerse} filterVerse={filterVerse}
                   onFilterVerse={setFilterVerse} onSend={sendMessage} loading={loading}
                 />
@@ -169,6 +184,7 @@ export default function RoomPage() {
               <DiscussionSheet
                 open={sheetOpen} onClose={() => setSheetOpen(false)}
                 messages={messages} currentUserId={session?.userId || ""}
+                book={book} chapter={chapter}
                 selectedVerse={selectedVerse} filterVerse={filterVerse}
                 onFilterVerse={setFilterVerse} onSend={sendMessage} loading={loading}
               />

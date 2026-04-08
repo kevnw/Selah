@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BibleChapter, BIBLE_VERSIONS, CHAPTER_COUNTS, BIBLE_BOOKS } from "@/lib/types";
+import { BibleChapter, BIBLE_VERSIONS, CHAPTER_COUNTS, BIBLE_BOOKS, VerseRange } from "@/lib/types";
 import { fetchChapter } from "@/lib/bible";
 import { BookChapterPicker } from "./BookChapterPicker";
 
@@ -9,9 +9,9 @@ interface Props {
   book: string;
   chapter: number;
   version: string;
-  selectedVerse: number | null;
+  selectedVerse: VerseRange | null;
   verseCommentCounts: Record<number, number>;
-  onVerseSelect: (verse: number | null) => void;
+  onVerseSelect: (range: VerseRange | null) => void;
   onNavigate: (book: string, chapter: number) => void;
   onVersionChange: (version: string) => void;
   onOpenDiscussion: () => void;
@@ -89,15 +89,26 @@ export function BibleReader({
           <div className="space-y-0.5">
             {bibleData.verses.map(({ verse, text }) => {
               const commentCount = verseCommentCounts[verse] || 0;
-              const isSelected = selectedVerse === verse;
+              const isSelected = selectedVerse ? verse >= selectedVerse.start && verse <= selectedVerse.end : false;
+              const isRangeEdge = selectedVerse && (verse === selectedVerse.start || verse === selectedVerse.end);
               const hasComments = commentCount > 0;
               return (
                 <div
                   key={verse}
-                  onClick={() => onVerseSelect(isSelected ? null : verse)}
+                  onClick={() => {
+                    if (isSelected) {
+                      onVerseSelect(null);
+                    } else if (selectedVerse) {
+                      onVerseSelect({ start: Math.min(selectedVerse.start, verse), end: Math.max(selectedVerse.end, verse) });
+                    } else {
+                      onVerseSelect({ start: verse, end: verse });
+                    }
+                  }}
                   className={`group flex gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
-                    isSelected
+                    isRangeEdge
                       ? "bg-blue-50 dark:bg-blue-900/25 ring-1 ring-blue-200 dark:ring-blue-800"
+                      : isSelected
+                      ? "bg-blue-50/60 dark:bg-blue-900/15"
                       : hasComments
                       ? "hover:bg-amber-50 dark:hover:bg-amber-900/20"
                       : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
@@ -106,7 +117,8 @@ export function BibleReader({
                   <div className="flex flex-col items-center gap-1 w-5 flex-shrink-0 pt-0.5">
                     <span className={`text-xs font-bold transition-colors ${
                       isSelected ? "text-blue-500" : hasComments ? "text-amber-500" : "text-gray-400 dark:text-gray-600 group-hover:text-blue-400"
-                    }`}>{verse}</span>
+                    }`}>{verse}
+                    </span>
                     {hasComments && (
                       <div className="flex items-center gap-0.5">
                         <div className="w-1 h-1 rounded-full bg-amber-400" />

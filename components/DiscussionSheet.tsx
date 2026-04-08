@@ -2,23 +2,25 @@
 
 import { useEffect, useRef } from "react";
 import { Discussion } from "./Discussion";
-import { Message } from "@/lib/types";
+import { Message, VerseRange } from "@/lib/types";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   messages: Message[];
   currentUserId: string;
-  selectedVerse: number | null;
-  filterVerse: number | null;
-  onFilterVerse: (verse: number | null) => void;
+  book: string;
+  chapter: number;
+  selectedVerse: VerseRange | null;
+  filterVerse: string | null;
+  onFilterVerse: (verseRef: string | null) => void;
   onSend: (content: string, verseRef?: string) => void;
   loading?: boolean;
 }
 
 export function DiscussionSheet({
   open, onClose, messages, currentUserId,
-  selectedVerse, filterVerse, onFilterVerse, onSend, loading,
+  book, chapter, selectedVerse, filterVerse, onFilterVerse, onSend, loading,
 }: Props) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export function DiscussionSheet({
                   onClick={() => onFilterVerse(null)}
                   className="text-xs text-blue-600 dark:text-blue-400 font-medium"
                 >
-                  Verse {filterVerse} · show all ×
+                  v.{filterVerse.split(":")[1]} · show all ×
                 </button>
               )}
             </div>
@@ -68,6 +70,7 @@ export function DiscussionSheet({
         <div className="flex-1 min-h-0 overflow-hidden">
           <Discussion
             messages={messages} currentUserId={currentUserId}
+            book={book} chapter={chapter}
             selectedVerse={selectedVerse} filterVerse={filterVerse}
             onFilterVerse={onFilterVerse} onSend={onSend} loading={loading}
             hideHeader
