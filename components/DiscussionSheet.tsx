@@ -15,12 +15,13 @@ interface Props {
   filterVerse: string | null;
   onFilterVerse: (verseRef: string | null) => void;
   onSend: (content: string, verseRef?: string) => void;
+  onNavigate?: (book: string, chapter: number) => void;
   loading?: boolean;
 }
 
 export function DiscussionSheet({
   open, onClose, messages, currentUserId,
-  book, chapter, selectedVerse, filterVerse, onFilterVerse, onSend, loading,
+  book, chapter, selectedVerse, filterVerse, onFilterVerse, onSend, onNavigate, loading,
 }: Props) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +73,7 @@ export function DiscussionSheet({
             messages={messages} currentUserId={currentUserId}
             book={book} chapter={chapter}
             selectedVerse={selectedVerse} filterVerse={filterVerse}
-            onFilterVerse={onFilterVerse} onSend={onSend} loading={loading}
+            onFilterVerse={onFilterVerse} onSend={onSend} onNavigate={onNavigate} loading={loading}
             hideHeader
           />
         </div>

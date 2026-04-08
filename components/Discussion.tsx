@@ -13,6 +13,7 @@ interface Props {
   filterVerse: string | null;
   onFilterVerse: (verseRef: string | null) => void;
   onSend: (content: string, verseRef?: string) => void;
+  onNavigate?: (book: string, chapter: number) => void;
   loading?: boolean;
   hideHeader?: boolean;
 }
@@ -27,7 +28,7 @@ function timeAgo(dateStr: string): string {
 
 export function Discussion({
   messages, currentUserId, book, chapter, selectedVerse, filterVerse,
-  onFilterVerse, onSend, loading, hideHeader,
+  onFilterVerse, onSend, onNavigate, loading, hideHeader,
 }: Props) {
   const [input, setInput] = useState("");
   const [attachVerse, setAttachVerse] = useState(true);
@@ -41,8 +42,29 @@ export function Discussion({
     setAttachVerse(true);
   }, [selectedVerse]);
 
+  function parseRef(ref: string): { start: number; end: number } | null {
+    const versePart = ref.split(":")[1];
+    if (!versePart) return null;
+    if (versePart.includes("-")) {
+      const [s, e] = versePart.split("-").map(Number);
+      return { start: s, end: e };
+    }
+    const v = Number(versePart);
+    return { start: v, end: v };
+  }
+
   const filtered = filterVerse
-    ? messages.filter((m) => m.verse_ref === filterVerse)
+    ? (() => {
+        const filterPrefix = filterVerse.split(":")[0];
+        const filterRange = parseRef(filterVerse);
+        return messages.filter((m) => {
+          if (!m.verse_ref) return false;
+          if (m.verse_ref.split(":")[0] !== filterPrefix) return false;
+          const msgRange = parseRef(m.verse_ref);
+          if (!filterRange || !msgRange) return false;
+          return filterRange.start <= msgRange.end && msgRange.start <= filterRange.end;
+        });
+      })()
     : messages;
 
   function buildVerseRef(range: VerseRange): string {
@@ -103,7 +125,15 @@ export function Discussion({
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">{msg.user_name}</span>
                   {msg.verse_ref && (
                     <button
-                      onClick={() => onFilterVerse(msg.verse_ref!)}
+                      onClick={() => {
+                        const ref = msg.verse_ref!;
+                        const [bookChapter] = ref.split(":");
+                        const parts = bookChapter.split(" ");
+                        const ch = Number(parts.pop());
+                        const bk = parts.join(" ");
+                        if (onNavigate && (bk !== book || ch !== chapter)) onNavigate(bk, ch);
+                        onFilterVerse(ref);
+                      }}
                       className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                       title={msg.verse_ref}
                     >

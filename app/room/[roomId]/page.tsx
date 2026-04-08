@@ -168,7 +168,7 @@ export default function RoomPage() {
                   messages={messages} currentUserId={session?.userId || ""}
                   book={book} chapter={chapter}
                   selectedVerse={selectedVerse} filterVerse={filterVerse}
-                  onFilterVerse={setFilterVerse} onSend={sendMessage} loading={loading}
+                  onFilterVerse={setFilterVerse} onSend={sendMessage} onNavigate={handleNavigate} loading={loading}
                 />
               </div>
             </div>
@@ -186,7 +186,7 @@ export default function RoomPage() {
                 messages={messages} currentUserId={session?.userId || ""}
                 book={book} chapter={chapter}
                 selectedVerse={selectedVerse} filterVerse={filterVerse}
-                onFilterVerse={setFilterVerse} onSend={sendMessage} loading={loading}
+                onFilterVerse={setFilterVerse} onSend={sendMessage} onNavigate={handleNavigate} loading={loading}
               />
             </div>
           </>
