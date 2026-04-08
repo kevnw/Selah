@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { BibleReader } from "@/components/BibleReader";
 import { Discussion } from "@/components/Discussion";
 import { DiscussionSheet } from "@/components/DiscussionSheet";
@@ -16,6 +16,7 @@ type Tab = "read" | "compare";
 
 export default function RoomPage() {
   const params = useParams();
+  const router = useRouter();
   const roomId = params.roomId as string;
 
   const [session, setSession] = useState<UserSession | null>(null);
@@ -23,6 +24,7 @@ export default function RoomPage() {
   const [nameInput, setNameInput] = useState("");
   const [tab, setTab] = useState<Tab>("read");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [book, setBook] = useState("Psalms");
   const [chapter, setChapter] = useState(23);
   const [version, setVersion] = useState("NIV");
@@ -128,10 +130,43 @@ export default function RoomPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowLeaveConfirm(true)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            title="Leave room"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
           <ThemeToggle />
           <UserAvatarGroup users={displayUsers} />
         </div>
       </header>
+
+      {/* Leave confirmation */}
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Leave room?</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">You can rejoin anytime with the same room code.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Stay
+              </button>
+              <button
+                onClick={() => router.push("/")}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center px-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
