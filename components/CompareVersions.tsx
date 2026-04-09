@@ -14,7 +14,7 @@ interface Props {
 const VERSION_KEYS = Object.keys(BIBLE_VERSIONS);
 
 export function CompareVersions({ book, chapter, onNavigate }: Props) {
-  const [selectedVersions, setSelectedVersions] = useState<string[]>(["NIV", "KJV", "ESV"]);
+  const [selectedVersions, setSelectedVersions] = useState<string[]>(["NIV", "TB"]);
   const [chapterData, setChapterData] = useState<Record<string, BibleChapter>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});

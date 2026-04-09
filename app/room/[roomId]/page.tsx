@@ -25,6 +25,13 @@ export default function RoomPage() {
   const [tab, setTab] = useState<Tab>("read");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  function copyRoomCode() {
+    navigator.clipboard.writeText(roomId);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  }
   const [book, setBook] = useState("Psalms");
   const [chapter, setChapter] = useState(23);
   const [version, setVersion] = useState("NIV");
@@ -35,7 +42,7 @@ export default function RoomPage() {
   useEffect(() => {
     const s = getOrCreateSession();
     setSession(s);
-    if (/^User\d+$/.test(s.userName)) setShowNamePrompt(true);
+    if (/^(User\d+|Guest)$/.test(s.userName)) setShowNamePrompt(true);
     const adj = ["Morning", "Evening", "Daily", "Weekly", "Sunday"];
     const noun = ["Devotion", "Study", "Reflection", "Prayer", "Fellowship"];
     const hash = roomId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -123,11 +130,15 @@ export default function RoomPage() {
             </svg>
           </div>
           <span className="font-bold text-gray-900 dark:text-gray-100 text-lg hidden sm:block">Selah</span>
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 min-w-0">
+          <button
+            onClick={copyRoomCode}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-w-0"
+            title="Click to copy room code"
+          >
             <span className="truncate max-w-[100px] sm:max-w-none">{roomName}</span>
             <span className="text-gray-400 dark:text-gray-600">·</span>
-            <span className="text-gray-400 dark:text-gray-500 font-mono">#{roomId.slice(0, 4).toUpperCase()}</span>
-          </div>
+            <span className="font-mono">{codeCopied ? "copied!" : roomId}</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <button
